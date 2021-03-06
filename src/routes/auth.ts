@@ -5,14 +5,10 @@ import moment from 'moment';
 
 // Import models
 import { User } from '../models/user';
+import { Token } from '../models/token';
 
 // Import interfaces
-import IUser from '../interfaces/user';
 import IToken from '../interfaces/token';
-
-// Import enumerations
-import EPermissions from '../enumerations/permissions';
-import { Token } from '../models/token';
 
 // Define constants
 const SALT_ROUNDS = 10;
