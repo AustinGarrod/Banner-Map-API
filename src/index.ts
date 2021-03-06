@@ -7,6 +7,7 @@ import morgan from 'morgan';
 
 // Import routes
 import { bannerRouter } from './routes/banner';
+import { authRouter } from './routes/auth';
 
 // Create express app
 const app = express();
@@ -15,10 +16,11 @@ const app = express();
 app.use(helmet());
 app.use(json());
 app.use(cors());
-app.use(morgan('combined'));
+// app.use(morgan('combined'));
 
 // apply routes to express app
 app.use(bannerRouter);
+app.use(authRouter);
 
 // Connect to MongoDB with mongoose
 mongoose.connect("mongodb://localhost:27017/banners", {

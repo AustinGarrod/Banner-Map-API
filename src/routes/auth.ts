@@ -1,17 +1,122 @@
 import express, { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import cryptoRandomString from 'crypto-random-string';
+import moment from 'moment';
 
 // Import models
+import { User } from '../models/user';
+
+// Import interfaces
+import IUser from '../interfaces/user';
+import IToken from '../interfaces/token';
+
+// Import enumerations
+import EPermissions from '../enumerations/permissions';
+import { Token } from '../models/token';
+
+// Define constants
+const SALT_ROUNDS = 10;
+const TOKEN_LIFESPAN_IN_MINUTES = 10080; // 10080 = 7 days
+const TOKEN_LENGTH = 256;
+
+// Define functions 
+
+/**
+ * Generate token from provided lifespan and username
+ * @param username username of user to create token for
+ * @param lifespan lifespan of token
+ * @returns token object
+ */
+const generateToken = (username: string, lifespan: number): IToken => {
+  const tokenString = cryptoRandomString({length: TOKEN_LENGTH, type: 'alphanumeric'});
+  const tokenExpiry = moment().add(lifespan, 'm');
+
+  return {
+    token: tokenString,
+    username: username,
+    expiry: tokenExpiry.toDate()
+  }
+}
 
 // Create router for export
 const router = express.Router();
 
 // Define routes
 router.post('/auth/login', (req: Request, res: Response) => {
+  const {username, password} = req.body;
+
+  if (username === undefined || password === undefined) {
+    res.status(400).send("Body of request must contain username and password");
+  } else {
+    res.status(200).send("yeet");
+  }
 
 });
 
+// Handle logging out
 router.post('/auth/logout', (req: Request, res: Response) => {
- 
+  const {token} = req.body; // get token from the body
+
+  if (token === undefined) { // ensure a token was provided
+    res.status(400).send("Body of request must contain token");
+  } else { // token provided
+    Token.findOne({token: token})
+      .then(doc => {
+        if (doc === null) { // token provided does not exist
+          return Promise.reject({code: 400, message: "Unable to invalidate token (token invalid)"});
+        } else { // token provided exists (expired or valid)
+          doc.delete();
+          res.status(200).send("Provided token is no longer valid");
+        }
+      })
+      .catch(error => { // catch and return any errors
+        res.status(error.code ? error.code : 500).send(error.message ? error.message : "Failed to create new user");
+      });
+  }
+});
+
+// handle creating users
+router.post('/auth/create', (req: Request, res: Response) => {
+  const {username, password} = req.body; // get username and password from the request
+
+  if (username === undefined || password === undefined) { // ensure username and password was provided
+    res.status(400).send("Body of request must contain username and password");
+  } else { // username and password provided
+    User.findOne({username: username})
+    .then(doc => { // Check if username already exists
+      if (doc !== null) {
+        return Promise.reject({code: 400, message: `User already exists with username ${username}`})
+      }
+    })
+    .then(() => {
+      // Generate a salt
+      return bcrypt.genSalt(SALT_ROUNDS);
+    })
+    .then(salt => {
+      // Hash the password using the generated salt
+      return Promise.all([bcrypt.hash(password, salt), salt]);
+    })
+    .then(([hash, salt]) => {
+      // Create a user with the generated hash and salt
+      const user = User.build({username: username, password: hash, salt: salt, permissions: []})
+      
+      return user.save();
+    })
+    .then(() => {
+      // Generate a token for the new user
+      const token = Token.build(generateToken(username, TOKEN_LIFESPAN_IN_MINUTES));
+
+      return token.save()
+    })
+    .then((token) => {
+      // Return the token for the new user
+      res.status(201).send(token);
+    })
+    .catch(error => {
+      // Handle and return any errors
+      res.status(error.code ? error.code : 500).send(error.message ? error.message : "Failed to create new user");
+    });
+  }
 });
 
 // Export route with unique name

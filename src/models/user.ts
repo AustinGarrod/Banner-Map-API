@@ -12,7 +12,7 @@ interface UserDoc extends mongoose.Document, IUser {}
 // Define mongoose schema
 const userSchema = new mongoose.Schema({
   username: {
-    type: Number,
+    type: String,
     required: true
   },
   password: {
