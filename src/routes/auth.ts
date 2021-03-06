@@ -48,7 +48,38 @@ router.post('/auth/login', (req: Request, res: Response) => {
   if (username === undefined || password === undefined) {
     res.status(400).send("Body of request must contain username and password");
   } else {
-    res.status(200).send("yeet");
+    User.findOne({username: username})
+    .then(doc => {
+      // check if user exists in database
+      if (doc === null) {
+        return Promise.reject({code: 400, message: "Failed to authenticate user"});
+      } else {
+        // User exists
+        return Promise.resolve(doc);
+      }
+    })
+    .then(user => {
+      // compare password with known hash
+      return bcrypt.compare(password, user.password);
+    })
+    .then(result => {
+      // If password doesnt match
+      if (!result) {
+        return Promise.reject({code: 400, message: "Failed to authenticate user"});
+      } 
+    })
+    .then(() => {
+      // Passwords match, generate token
+      return Token.findOneAndUpdate(
+        {username: username}, 
+        generateToken(username, TOKEN_LIFESPAN_IN_MINUTES), 
+        {upsert: true, new: true})
+    })
+    .then(token => { res.status(200).send(token) }) // return the new token
+    .catch(error => { // catch and return any errors
+      res.status(error.code ? error.code : 500).send(error.message ? error.message : "Failed to create new user");
+    });
+
   }
 
 });
