@@ -5,8 +5,8 @@ import moment from 'moment';
 import { Token } from '../models/token';
 import { User } from '../models/user';
 
-// Define Constants
-const TOKEN_LIFESPAN_IN_MINUTES = 10080; // 10080 = 7 days
+// Import settings
+import SETTINGS from '../config/settings';
 
 // Middleware function to handle access authorization
 const needsRole = (roles?: string[]) => {
@@ -25,7 +25,7 @@ const needsRole = (roles?: string[]) => {
             doc.delete();
             return Promise.reject({code: 401, message: "Access Denied (expired token)"});
           } else { // If valid token is found, extend life of token
-            doc.expiry = moment().add(TOKEN_LIFESPAN_IN_MINUTES, 'm').toDate();
+            doc.expiry = moment().add(SETTINGS.TOKEN_LIFESPAN_IN_MINUTES, 'm').toDate();
             return doc.save(); 
           }         
         })

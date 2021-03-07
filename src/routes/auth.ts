@@ -10,10 +10,8 @@ import { Token } from '../models/token';
 // Import interfaces
 import IToken from '../interfaces/token';
 
-// Define constants
-const SALT_ROUNDS = 10;
-const TOKEN_LIFESPAN_IN_MINUTES = 10080; // 10080 = 7 days
-const TOKEN_LENGTH = 256;
+// Import settings
+import SETTINGS from '../config/settings';
 
 // Define functions 
 
@@ -24,7 +22,7 @@ const TOKEN_LENGTH = 256;
  * @returns token object
  */
 const generateToken = (username: string, lifespan: number): IToken => {
-  const tokenString = cryptoRandomString({length: TOKEN_LENGTH, type: 'alphanumeric'});
+  const tokenString = cryptoRandomString({length: SETTINGS.TOKEN_LENGTH, type: 'alphanumeric'});
   const tokenExpiry = moment().add(lifespan, 'm');
 
   return {
@@ -68,7 +66,7 @@ router.post('/auth/login', (req: Request, res: Response) => {
       // Passwords match, generate token
       return Token.findOneAndUpdate(
         {username: username}, 
-        generateToken(username, TOKEN_LIFESPAN_IN_MINUTES), 
+        generateToken(username, SETTINGS.TOKEN_LIFESPAN_IN_MINUTES), 
         {upsert: true, new: true})
     })
     .then(token => { res.status(200).send(token) }) // return the new token
@@ -117,7 +115,7 @@ router.post('/auth/create', (req: Request, res: Response) => {
     })
     .then(() => {
       // Generate a salt
-      return bcrypt.genSalt(SALT_ROUNDS);
+      return bcrypt.genSalt(SETTINGS.SALT_ROUNDS);
     })
     .then(salt => {
       // Hash the password using the generated salt
@@ -131,7 +129,7 @@ router.post('/auth/create', (req: Request, res: Response) => {
     })
     .then(() => {
       // Generate a token for the new user
-      const token = Token.build(generateToken(username, TOKEN_LIFESPAN_IN_MINUTES));
+      const token = Token.build(generateToken(username, SETTINGS.TOKEN_LIFESPAN_IN_MINUTES));
 
       return token.save()
     })
