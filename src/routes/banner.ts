@@ -1,13 +1,19 @@
 import express, { Request, Response } from 'express';
 
+// Import middleware
+import { needsRole } from '../middleware/authentication';
+
 // Import models
 import { Banner } from '../models/banner';
+
+// Import enumerations
+import EPermissions from '../enumerations/permissions';
 
 // Create router for export
 const router = express.Router();
 
 // Define routes
-router.get('/api/banner/all', (req: Request, res: Response) => {
+router.get('/api/banner/all', needsRole([EPermissions.ADMIN]), (req: Request, res: Response) => {
   Banner.find({})
     .then((docs) => {
       res.status(200).send(docs);
