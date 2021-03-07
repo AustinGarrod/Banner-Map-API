@@ -20,7 +20,7 @@ router.get('/api/banner/all', needsRole([EPermissions.ADMIN]), (req: Request, re
     });
 });
 
-router.post('/api/banner', [], (req: Request, res: Response) => {
+router.post('/api/banner', needsRole([EPermissions.MANAGE_BANNERS]), (req: Request, res: Response) => {
   const banner = Banner.build(req.body);
 
   banner.save()

@@ -20,8 +20,11 @@ const needsRole = (roles?: string[]) => {
       Token.findOne({token: authToken}) // Pull token from database
         .then(doc => {
           if (doc === null) { // If token isn't found, deny access
-            return Promise.reject({code: 401, message: "Access Denied"});
-          } else { // If token is found, extend life of token
+            return Promise.reject({code: 401, message: "Access Denied (invalid token)"});
+          } else if (moment(doc.expiry).isBefore(moment())) { // Token exists, check if token has expired
+            doc.delete();
+            return Promise.reject({code: 401, message: "Access Denied (expired token)"});
+          } else { // If valid token is found, extend life of token
             doc.expiry = moment().add(TOKEN_LIFESPAN_IN_MINUTES, 'm').toDate();
             return doc.save(); 
           }         
@@ -36,9 +39,7 @@ const needsRole = (roles?: string[]) => {
         .catch(error => { // catch and return any errors
           res.status(error.code ? error.code : 500).send(error.message ? error.message : "Failed authenticate token");
         });
-
     }
-
   }
 }
 
