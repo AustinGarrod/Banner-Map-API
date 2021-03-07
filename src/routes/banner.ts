@@ -13,7 +13,7 @@ import EPermissions from '../enumerations/permissions';
 const router = express.Router();
 
 // Define routes
-router.get('/api/banner/all', needsRole([EPermissions.ADMIN]), (req: Request, res: Response) => {
+router.get('/api/banner/all', needsRole(), (req: Request, res: Response) => {
   Banner.find({})
     .then((docs) => {
       res.status(200).send(docs);
