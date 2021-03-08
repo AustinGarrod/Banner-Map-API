@@ -22,7 +22,7 @@ const needsRole = (roles?: string[]) => {
           if (doc === null) { // If token isn't found, deny access
             return Promise.reject({code: 401, message: "Access Denied (invalid token)"});
           } else if (moment(doc.expiry).isBefore(moment())) { // Token exists, check if token has expired
-            doc.delete();
+            doc.remove();
             return Promise.reject({code: 401, message: "Access Denied (expired token)"});
           } else { // If valid token is found, extend life of token
             doc.expiry = moment().add(SETTINGS.TOKEN_LIFESPAN_IN_MINUTES, 'm').toDate();
