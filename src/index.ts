@@ -18,7 +18,7 @@ const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_PASS = process.env.DB_PASS;
 const DB_NAME = process.env.DB_NAME;
-const APP_PORT = process.env.APP_PORT;
+const APP_PORT = process.env.PORT ? process.env.PORT : process.env.APP_PORT;
 
 // Create express app
 const app = express();
