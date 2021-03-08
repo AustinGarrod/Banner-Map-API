@@ -4,10 +4,21 @@ import cors from 'cors';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
+import * as dotenv from "dotenv";
+
+// Implement env file
+dotenv.config(); 
 
 // Import routes
 import { bannerRouter } from './routes/banner';
 import { authRouter } from './routes/auth';
+
+// Get needed values from ENV
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_PASS = process.env.DB_PASS;
+const DB_NAME = process.env.DB_NAME;
+const APP_PORT = process.env.APP_PORT;
 
 // Create express app
 const app = express();
@@ -23,7 +34,7 @@ app.use(bannerRouter);
 app.use(authRouter);
 
 // Connect to MongoDB with mongoose
-mongoose.connect("mongodb://localhost:27017/banners", {
+mongoose.connect(`mongodb+srv://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}?retryWrites=true&w=majority`, {
   useCreateIndex: true,
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -33,6 +44,6 @@ mongoose.connect("mongodb://localhost:27017/banners", {
 });
 
 // Start listening for requests
-app.listen(3000, () => {
-  console.log("Server is listening on port 3000");
+app.listen(APP_PORT, () => {
+  console.log(`Server is listening on port ${APP_PORT}`);
 });
