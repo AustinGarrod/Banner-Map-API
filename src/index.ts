@@ -12,6 +12,7 @@ dotenv.config();
 // Import routes
 import { bannerRouter } from './routes/banner';
 import { authRouter } from './routes/auth';
+import { statusRouter } from './routes/status';
 
 // Get needed values from ENV
 const DB_HOST = process.env.DB_HOST;
@@ -32,6 +33,7 @@ app.use(cors());
 // apply routes to express app
 app.use(bannerRouter);
 app.use(authRouter);
+app.use(statusRouter);
 
 // Connect to MongoDB with mongoose
 mongoose.connect(`mongodb+srv://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}?retryWrites=true&w=majority`, {
