@@ -13,8 +13,19 @@ import EPermissions from '../enumerations/permissions';
 const router = express.Router();
 
 // Define routes
-router.get('/api/banner/all', needsRole(), (req: Request, res: Response) => {
+router.get('/api/banner/all', (req: Request, res: Response) => {
   Banner.find({})
+    .then((docs) => {
+      res.status(200).send(docs);
+    });
+});
+
+router.get('/api/banner/active', (req: Request, res: Response) => {
+  Banner.find({
+    "enabled": true,
+    "lat": { $ne: 0 },
+    "long": { $ne: 0 }
+  })
     .then((docs) => {
       res.status(200).send(docs);
     });
